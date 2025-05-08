@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ExpandableReferralTree from "@/components/clientes/ExpandableReferralTree";
 
 // Componentes simplificados para evitar erros
 const SimpleClientesTable = () => (
@@ -129,69 +130,6 @@ const SimpleAffiliatesApproval = () => (
   </Card>
 );
 
-const SimpleReferralTree = () => (
-  <Card className="w-full bg-white overflow-hidden">
-    <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-blue-100 pb-4">
-      <CardTitle className="text-xl font-bold text-blue-800">
-        Árvore de Indicados
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="p-6">
-      <div className="space-y-4">
-        <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
-          <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">
-              <span>MO</span>
-            </div>
-            <div>
-              <div className="font-medium text-blue-700">Maria Oliveira</div>
-              <div className="text-xs text-blue-600">Nível 1</div>
-            </div>
-          </div>
-          <div className="mt-3 ml-8 pl-4 border-l-2 border-dashed border-blue-300">
-            <div className="p-3 rounded-lg bg-purple-50 border border-purple-100 mb-2">
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center mr-2">
-                  <span>PS</span>
-                </div>
-                <div>
-                  <div className="font-medium text-purple-700">
-                    Pedro Santos
-                  </div>
-                  <div className="text-xs text-purple-600">Nível 2</div>
-                </div>
-              </div>
-            </div>
-            <div className="p-3 rounded-lg bg-purple-50 border border-purple-100">
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center mr-2">
-                  <span>AC</span>
-                </div>
-                <div>
-                  <div className="font-medium text-purple-700">Ana Costa</div>
-                  <div className="text-xs text-purple-600">Nível 2</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
-          <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">
-              <span>CF</span>
-            </div>
-            <div>
-              <div className="font-medium text-blue-700">Carlos Ferreira</div>
-              <div className="text-xs text-blue-600">Nível 1</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
-
 export default function IndicadosPage() {
   return (
     <div className="bg-background min-h-screen p-6">
@@ -247,7 +185,7 @@ export default function IndicadosPage() {
 
       {/* Árvore de Indicados */}
       <div className="mb-8">
-        <SimpleReferralTree />
+        <ExpandableReferralTree />
       </div>
     </div>
   );

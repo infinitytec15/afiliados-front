@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, User, Users, Search, Filter } from "lucide-react";
 
 interface ReferralUser {
   id: string;
@@ -16,14 +15,14 @@ interface ReferralUser {
 }
 
 export default function ExpandableReferralTree() {
-  // Simplified state management - only essential states
   const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>(
     {},
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [isCompactView, setIsCompactView] = useState(false);
+  const [allExpanded, setAllExpanded] = useState(false);
 
-  // Mock data for demonstration
+  // Mock data para demonstração
   const mockReferrals: ReferralUser[] = [
     {
       id: "1",
@@ -79,7 +78,7 @@ export default function ExpandableReferralTree() {
     },
   ];
 
-  // Simple filtering function - no complex dependencies
+  // Filtrar referrals baseado no termo de busca
   const filteredReferrals =
     searchTerm.trim() === ""
       ? mockReferrals
@@ -91,7 +90,7 @@ export default function ExpandableReferralTree() {
           );
         });
 
-  // Simple toggle function
+  // Função para alternar a expansão de um usuário
   const toggleExpand = (userId: string) => {
     setExpandedUsers((prev) => ({
       ...prev,
@@ -99,25 +98,38 @@ export default function ExpandableReferralTree() {
     }));
   };
 
-  // Expand all nodes
+  // Função para expandir todos os nós
   const expandAll = () => {
-    const allExpanded: Record<string, boolean> = {};
+    const newExpandedUsers: Record<string, boolean> = {};
+
     const processUser = (user: ReferralUser) => {
       if (user.indicados && user.indicados.length > 0) {
-        allExpanded[user.id] = true;
+        newExpandedUsers[user.id] = true;
         user.indicados.forEach(processUser);
       }
     };
+
     mockReferrals.forEach(processUser);
-    setExpandedUsers(allExpanded);
+    setExpandedUsers(newExpandedUsers);
+    setAllExpanded(true);
   };
 
-  // Collapse all nodes
+  // Função para recolher todos os nós
   const collapseAll = () => {
     setExpandedUsers({});
+    setAllExpanded(false);
   };
 
-  // Render a user item in the tree
+  // Função para alternar entre expandir e colapsar todos
+  const toggleExpandAll = () => {
+    if (allExpanded) {
+      collapseAll();
+    } else {
+      expandAll();
+    }
+  };
+
+  // Renderiza um item de usuário na árvore
   const renderUserItem = (user: ReferralUser) => {
     const hasChildren = user.indicados && user.indicados.length > 0;
     const isExpanded = expandedUsers[user.id] || false;
@@ -131,7 +143,7 @@ export default function ExpandableReferralTree() {
           <div
             className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2 sm:mr-3 ${isLevel1 ? "bg-blue-500 text-white" : "bg-purple-500 text-white"}`}
           >
-            <User className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span>{user.nome.charAt(0)}</span>
           </div>
 
           <div className="flex-1 min-w-0">
@@ -148,7 +160,6 @@ export default function ExpandableReferralTree() {
               </span>
               {hasChildren && (
                 <span className="ml-2 text-xs text-muted-foreground flex items-center">
-                  <Users className="h-3 w-3 mr-1" />
                   {user.indicados!.length} indicado
                   {user.indicados!.length !== 1 ? "s" : ""}
                 </span>
@@ -159,11 +170,11 @@ export default function ExpandableReferralTree() {
           {hasChildren && (
             <Button
               variant="ghost"
-              size="icon"
-              className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full ${isExpanded ? "rotate-180" : ""} ${isLevel1 ? "text-blue-600" : "text-purple-600"}`}
+              size="sm"
+              className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full ${isLevel1 ? "text-blue-600" : "text-purple-600"}`}
               onClick={() => toggleExpand(user.id)}
             >
-              <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" />
+              {isExpanded ? "−" : "+"}
             </Button>
           )}
         </div>
@@ -186,38 +197,29 @@ export default function ExpandableReferralTree() {
           </CardTitle>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 placeholder="Buscar indicados..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 pl-8 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 pl-8 text-sm shadow-sm"
               />
             </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={expandAll}
-                className="text-xs sm:text-sm flex-1 sm:flex-none hover:bg-blue-50"
+                onClick={toggleExpandAll}
+                className="text-xs sm:text-sm flex-1 sm:flex-none hover:bg-blue-50 flex items-center gap-1"
               >
-                Expandir
+                {allExpanded ? "Recolher Tudo" : "Expandir Tudo"}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={collapseAll}
-                className="text-xs sm:text-sm flex-1 sm:flex-none hover:bg-blue-50"
-              >
-                Recolher
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
                 onClick={() => setIsCompactView(!isCompactView)}
                 className={`hover:bg-blue-50 ${isCompactView ? "bg-blue-100" : ""}`}
               >
-                <Filter className="h-4 w-4" />
+                Compactar
               </Button>
             </div>
           </div>
