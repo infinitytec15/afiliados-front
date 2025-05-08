@@ -3,14 +3,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, User } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useAuth } from "@/contexts/AuthContext";
+import { ChevronDown, User, Users, Search, Filter } from "lucide-react";
 
 interface ReferralUser {
   id: string;
@@ -23,14 +16,14 @@ interface ReferralUser {
 }
 
 export default function ExpandableReferralTree() {
+  // Simplified state management - only essential states
   const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>(
     {},
   );
-  const [selectedUser, setSelectedUser] = useState<ReferralUser | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isCompactView, setIsCompactView] = useState(false);
 
-  // Mock data para demonstração
+  // Mock data for demonstration
   const mockReferrals: ReferralUser[] = [
     {
       id: "1",
@@ -86,7 +79,19 @@ export default function ExpandableReferralTree() {
     },
   ];
 
-  // Função para alternar a expansão de um usuário
+  // Simple filtering function - no complex dependencies
+  const filteredReferrals =
+    searchTerm.trim() === ""
+      ? mockReferrals
+      : mockReferrals.filter((user) => {
+          const searchTermLower = searchTerm.toLowerCase();
+          return (
+            user.nome.toLowerCase().includes(searchTermLower) ||
+            user.email.toLowerCase().includes(searchTermLower)
+          );
+        });
+
+  // Simple toggle function
   const toggleExpand = (userId: string) => {
     setExpandedUsers((prev) => ({
       ...prev,
@@ -94,57 +99,78 @@ export default function ExpandableReferralTree() {
     }));
   };
 
-  // Função para mostrar detalhes do usuário
-  const showUserDetails = (user: ReferralUser) => {
-    setSelectedUser(user);
-    setIsDialogOpen(true);
+  // Expand all nodes
+  const expandAll = () => {
+    const allExpanded: Record<string, boolean> = {};
+    const processUser = (user: ReferralUser) => {
+      if (user.indicados && user.indicados.length > 0) {
+        allExpanded[user.id] = true;
+        user.indicados.forEach(processUser);
+      }
+    };
+    mockReferrals.forEach(processUser);
+    setExpandedUsers(allExpanded);
   };
 
-  // Renderiza um item de usuário na árvore
-  const renderUserItem = (user: ReferralUser, depth: number = 0) => {
+  // Collapse all nodes
+  const collapseAll = () => {
+    setExpandedUsers({});
+  };
+
+  // Render a user item in the tree
+  const renderUserItem = (user: ReferralUser) => {
     const hasChildren = user.indicados && user.indicados.length > 0;
     const isExpanded = expandedUsers[user.id] || false;
+    const isLevel1 = user.nivel === 1;
 
     return (
-      <div key={user.id} className="mb-2">
+      <div key={user.id} className="relative mb-4">
         <div
-          className={`flex items-center p-3 rounded-md ${depth === 0 ? "bg-primary/5" : depth === 1 ? "bg-primary/3" : ""} hover:bg-primary/10`}
-          style={{ marginLeft: `${depth * 24}px` }}
+          className={`flex items-center p-3 sm:p-4 rounded-lg shadow-sm border border-transparent ${isLevel1 ? "bg-blue-50" : "bg-purple-50"}`}
         >
-          {hasChildren ? (
+          <div
+            className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2 sm:mr-3 ${isLevel1 ? "bg-blue-500 text-white" : "bg-purple-500 text-white"}`}
+          >
+            <User className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div
+              className={`text-left font-medium truncate w-full ${isLevel1 ? "text-blue-700" : "text-purple-700"}`}
+            >
+              {user.nome}
+            </div>
+            <div className="flex items-center mt-1 flex-wrap gap-y-1">
+              <span
+                className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium ${isLevel1 ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}`}
+              >
+                Nível {user.nivel}
+              </span>
+              {hasChildren && (
+                <span className="ml-2 text-xs text-muted-foreground flex items-center">
+                  <Users className="h-3 w-3 mr-1" />
+                  {user.indicados!.length} indicado
+                  {user.indicados!.length !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {hasChildren && (
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 mr-2"
+              className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full ${isExpanded ? "rotate-180" : ""} ${isLevel1 ? "text-blue-600" : "text-purple-600"}`}
               onClick={() => toggleExpand(user.id)}
             >
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
+              <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-          ) : (
-            <div className="w-8 mr-2 flex justify-center">
-              <User className="h-4 w-4 text-muted-foreground" />
-            </div>
           )}
-          <div className="flex-1">
-            <button
-              onClick={() => showUserDetails(user)}
-              className="text-left font-medium text-primary hover:underline"
-            >
-              {user.nome}
-            </button>
-            <span className="ml-2 text-xs text-muted-foreground">
-              Nível {user.nivel}
-            </span>
-          </div>
         </div>
 
         {hasChildren && isExpanded && (
-          <div className="mt-1">
-            {user.indicados!.map((child) => renderUserItem(child, depth + 1))}
+          <div className="mt-2 ml-4 sm:ml-8 pl-2 sm:pl-4 border-l-2 border-dashed border-gray-300">
+            {user.indicados!.map((child) => renderUserItem(child))}
           </div>
         )}
       </div>
@@ -152,74 +178,65 @@ export default function ExpandableReferralTree() {
   };
 
   return (
-    <Card className="w-full bg-white">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">
-          Árvore de Indicados
-        </CardTitle>
+    <Card className="w-full bg-white overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-blue-100 pb-4 sm:pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-blue-800">
+            Árvore de Indicados
+          </CardTitle>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                placeholder="Buscar indicados..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 pl-8 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={expandAll}
+                className="text-xs sm:text-sm flex-1 sm:flex-none hover:bg-blue-50"
+              >
+                Expandir
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={collapseAll}
+                className="text-xs sm:text-sm flex-1 sm:flex-none hover:bg-blue-50"
+              >
+                Recolher
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsCompactView(!isCompactView)}
+                className={`hover:bg-blue-50 ${isCompactView ? "bg-blue-100" : ""}`}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {mockReferrals.length > 0 ? (
-            mockReferrals.map((referral) => renderUserItem(referral))
+      <CardContent
+        className={`p-3 sm:p-6 ${isCompactView ? "space-y-2" : "space-y-4"}`}
+      >
+        <div className="space-y-2 sm:space-y-4">
+          {filteredReferrals.length > 0 ? (
+            filteredReferrals.map((referral) => renderUserItem(referral))
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              Você ainda não possui indicados.
+              {searchTerm
+                ? "Nenhum indicado encontrado com este termo."
+                : "Você ainda não possui indicados."}
             </div>
           )}
         </div>
-
-        {/* Dialog para exibir detalhes do usuário */}
-        <Dialog
-          open={isDialogOpen}
-          onOpenChange={(open) => {
-            if (isDialogOpen !== open) {
-              setIsDialogOpen(open);
-            }
-          }}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Detalhes do Indicado</DialogTitle>
-            </DialogHeader>
-            {selectedUser && (
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Nome
-                    </p>
-                    <p className="text-base">{selectedUser.nome}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Nível
-                    </p>
-                    <p className="text-base">{selectedUser.nivel}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Email
-                    </p>
-                    <p className="text-base">{selectedUser.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Telefone
-                    </p>
-                    <p className="text-base">{selectedUser.telefone}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      CPF
-                    </p>
-                    <p className="text-base">{selectedUser.cpf}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </CardContent>
     </Card>
   );
