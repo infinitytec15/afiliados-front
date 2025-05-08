@@ -231,12 +231,21 @@ export default function CadastroUnificado() {
     setCurrentStep(2);
   };
 
+  // Estado para controlar o loading durante o envio do formulário
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Função para finalizar o cadastro
-  const onSubmitStep2 = (data: any) => {
+  const onSubmitStep2 = async (data: any) => {
+    setIsSubmitting(true);
     const completeData = { ...formData, ...data };
     console.log("Dados do cadastro:", completeData);
     localStorage.setItem("cadastroData", JSON.stringify(completeData));
-    router.push("/cadastro/sucesso");
+
+    // Simular um tempo de processamento
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // Redirecionar diretamente para a página de contrato
+    router.push("/contrato");
   };
 
   // Função para formatar CPF enquanto digita
@@ -835,25 +844,54 @@ export default function CadastroUnificado() {
                         <Button
                           type="submit"
                           className="w-2/3 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 transition-all text-white font-medium py-6"
+                          disabled={isSubmitting}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="mr-2"
-                          >
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M22 21v-2a4 4 0 0 1 0 7.75" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                          </svg>
-                          Finalizar Cadastro
+                          {isSubmitting ? (
+                            <>
+                              <svg
+                                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                              Criando cadastro...
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-2"
+                              >
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 1 0 7.75" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                              Finalizar Cadastro
+                            </>
+                          )}
                         </Button>
                       </CardFooter>
                     </form>

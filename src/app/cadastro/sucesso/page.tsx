@@ -53,7 +53,10 @@ export default function CadastroSucesso() {
 
             <CardFooter className="flex justify-center pt-2">
               <Link href="/contrato">
-                <Button size="lg" className="px-8">
+                <Button
+                  size="lg"
+                  className="px-8 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 transition-all"
+                >
                   Continuar para Contrato
                 </Button>
               </Link>

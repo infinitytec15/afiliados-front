@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Search, Filter } from "lucide-react";
+import { Download, Search } from "lucide-react";
 
 interface Cliente {
   id: string;
@@ -36,10 +36,6 @@ interface ClientesTableProps {
 }
 
 export default function ClientesTable({ clientes = [] }: ClientesTableProps) {
-  const [filteredClientes, setFilteredClientes] = useState<Cliente[]>(clientes);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [nivelFilter, setNivelFilter] = useState<string>("todos");
-
   // Mock data para demonstração quando não houver clientes passados como prop
   const mockClientes: Cliente[] = [
     {
@@ -90,10 +86,15 @@ export default function ClientesTable({ clientes = [] }: ClientesTableProps) {
   ];
 
   // Usar os clientes mockados se não houver clientes passados como prop
-  const displayClientes = clientes.length > 0 ? clientes : mockClientes;
+  const displayClientes = useMemo(() => {
+    return clientes.length > 0 ? clientes : mockClientes;
+  }, [clientes, mockClientes]);
 
-  // Função para filtrar clientes
-  const handleFilter = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [nivelFilter, setNivelFilter] = useState<string>("todos");
+
+  // Filtrar clientes usando useMemo para evitar recálculos desnecessários
+  const filteredClientes = useMemo(() => {
     let filtered = displayClientes;
 
     // Filtrar por termo de busca
@@ -113,8 +114,8 @@ export default function ClientesTable({ clientes = [] }: ClientesTableProps) {
       );
     }
 
-    setFilteredClientes(filtered);
-  };
+    return filtered;
+  }, [displayClientes, searchTerm, nivelFilter]);
 
   // Função para exportar para CSV
   const exportToCSV = () => {
@@ -144,11 +145,6 @@ export default function ClientesTable({ clientes = [] }: ClientesTableProps) {
     document.body.removeChild(link);
   };
 
-  // Inicializar filteredClientes com todos os clientes
-  React.useEffect(() => {
-    setFilteredClientes(displayClientes);
-  }, [displayClientes]);
-
   return (
     <Card className="w-full bg-white">
       <CardHeader>
@@ -164,7 +160,10 @@ export default function ClientesTable({ clientes = [] }: ClientesTableProps) {
                 className="pl-8"
               />
             </div>
-            <Select value={nivelFilter} onValueChange={setNivelFilter}>
+            <Select
+              value={nivelFilter}
+              onValueChange={(value) => setNivelFilter(value)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filtrar por nível" />
               </SelectTrigger>
@@ -174,10 +173,6 @@ export default function ClientesTable({ clientes = [] }: ClientesTableProps) {
                 <SelectItem value="2">Nível 2</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={handleFilter} variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtrar
-            </Button>
           </div>
           <Button onClick={exportToCSV} variant="outline">
             <Download className="h-4 w-4 mr-2" />

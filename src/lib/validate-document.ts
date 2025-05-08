@@ -78,7 +78,34 @@ export function validateCNPJ(cnpj: string): boolean {
   return true;
 }
 
-// Validate either CPF or CNPJ based on length
+// Format CPF with mask
+export function formatCPF(value: string): string {
+  // Remove non-digits
+  value = value.replace(/\D/g, "");
+
+  // Apply mask: 000.000.000-00
+  value = value.replace(/^(\d{3})(\d)/g, "$1.$2");
+  value = value.replace(/(\d{3})(\d)/g, "$1.$2");
+  value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+  return value;
+}
+
+// Format CNPJ with mask
+export function formatCNPJ(value: string): string {
+  // Remove non-digits
+  value = value.replace(/\D/g, "");
+
+  // Apply mask: 00.000.000/0000-00
+  value = value.replace(/^(\d{2})(\d)/g, "$1.$2");
+  value = value.replace(/(\d{3})(\d)/g, "$1.$2");
+  value = value.replace(/(\d{3})(\d)/g, "$1/$2");
+  value = value.replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+
+  return value;
+}
+
+// Validate either CPF or CNPJ based on type
 export function validateDocument(doc: string, type: "cpf" | "cnpj"): boolean {
   const cleanDoc = doc.replace(/\D/g, "");
 
@@ -89,4 +116,13 @@ export function validateDocument(doc: string, type: "cpf" | "cnpj"): boolean {
   }
 
   return false;
+}
+
+// Format document based on type
+export function formatDocument(value: string, type: "cpf" | "cnpj"): string {
+  if (type === "cpf") {
+    return formatCPF(value);
+  } else {
+    return formatCNPJ(value);
+  }
 }

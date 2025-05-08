@@ -3,6 +3,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ExpandableReferralTree from "@/components/clientes/ExpandableReferralTree";
+import ClientesTable from "@/components/clientes/ClientesTable";
 
 // Componentes simplificados para evitar erros
 const SimpleClientesTable = () => (
@@ -175,7 +176,7 @@ export default function IndicadosPage() {
 
       {/* Lista de Indicados */}
       <div className="mb-8">
-        <SimpleClientesTable />
+        <ClientesTable />
       </div>
 
       {/* Área de aprovação de afiliados */}
