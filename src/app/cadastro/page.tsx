@@ -234,18 +234,118 @@ export default function CadastroUnificado() {
   // Estado para controlar o loading durante o envio do formulário
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Função para finalizar o cadastro
+  // Função para enviar dados para o Active Campaign
+  const sendToActiveCampaign = async (userData: any) => {
+    const apiUrl = process.env.NEXT_PUBLIC_ACTIVE_CAMPAIGN_API_URL;
+    const apiKey = process.env.NEXT_PUBLIC_ACTIVE_CAMPAIGN_API_KEY;
+
+    if (!apiUrl || !apiKey) {
+      console.error(
+        "Variáveis de ambiente do Active Campaign não configuradas",
+      );
+      throw new Error("Configuração do Active Campaign incompleta");
+    }
+
+    // Criar contato no Active Campaign
+    const contactData = {
+      contact: {
+        email: userData.email,
+        firstName: userData.nome,
+        lastName: userData.sobrenome,
+        phone: `+${userData.ddi}${userData.telefone.replace(/\D/g, "")}`,
+        fieldValues: [
+          {
+            field: "1", // ID do campo personalizado para documento (ajuste conforme necessário)
+            value: userData.documento,
+          },
+          {
+            field: "2", // ID do campo personalizado para tipo de documento (ajuste conforme necessário)
+            value: userData.tipoDocumento,
+          },
+        ],
+      },
+    };
+
+    try {
+      const response = await fetch(`${apiUrl}/api/3/contacts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Api-Token": apiKey,
+        },
+        body: JSON.stringify(contactData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Erro ao criar contato: ${JSON.stringify(errorData)}`);
+      }
+
+      const result = await response.json();
+      console.log("Contato criado com sucesso no Active Campaign:", result);
+
+      // Adicionar contato à lista de afiliados (ajuste o ID da lista conforme necessário)
+      const listId = 1; // ID da lista de afiliados no Active Campaign
+      await fetch(`${apiUrl}/api/3/contactLists`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Api-Token": apiKey,
+        },
+        body: JSON.stringify({
+          contactList: {
+            list: listId,
+            contact: result.contact.id,
+            status: 1,
+          },
+        }),
+      });
+
+      // Se houver um afiliado que indicou, registrar essa relação em um campo personalizado
+      if (userData.afiliado_id) {
+        await fetch(`${apiUrl}/api/3/fieldValues`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Api-Token": apiKey,
+          },
+          body: JSON.stringify({
+            fieldValue: {
+              contact: result.contact.id,
+              field: "3", // ID do campo personalizado para afiliado que indicou
+              value: userData.afiliado_id,
+            },
+          }),
+        });
+      }
+
+      return result.contact.id;
+    } catch (error) {
+      console.error("Erro na integração com Active Campaign:", error);
+      throw error;
+    }
+  };
+
+  // Função para finalizar o cadastro e integrar com Active Campaign
   const onSubmitStep2 = async (data: any) => {
     setIsSubmitting(true);
     const completeData = { ...formData, ...data };
     console.log("Dados do cadastro:", completeData);
     localStorage.setItem("cadastroData", JSON.stringify(completeData));
 
-    // Simular um tempo de processamento
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Enviar dados para o Active Campaign
+      console.log("Enviando dados para Active Campaign...");
+      await sendToActiveCampaign(completeData);
+      console.log("Dados enviados com sucesso para Active Campaign");
 
-    // Redirecionar diretamente para a página de contrato
-    router.push("/contrato");
+      // Redirecionar para a página de contrato
+      router.push("/contrato");
+    } catch (error) {
+      console.error("Erro ao enviar dados para Active Campaign:", error);
+      setIsSubmitting(false);
+      // Aqui você poderia mostrar uma mensagem de erro para o usuário
+    }
   };
 
   // Função para formatar CPF enquanto digita

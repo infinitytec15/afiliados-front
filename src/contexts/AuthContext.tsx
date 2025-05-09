@@ -24,6 +24,8 @@ type AuthContextType = {
   ) => Promise<boolean>;
   logout: () => void;
   getReferralLink: () => string;
+  saveCustomLinkSlug: (slug: string) => boolean;
+  customLinkSlug: string;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,13 +111,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("user");
   };
 
+  // Estado para armazenar o link personalizado do usuário
+  const [customLinkSlug, setCustomLinkSlug] = useState<string>("");
+
+  // Carregar o slug personalizado do localStorage ao iniciar
+  useEffect(() => {
+    if (user) {
+      const storedSlug = localStorage.getItem(`customLinkSlug_${user.id}`);
+      if (storedSlug) {
+        setCustomLinkSlug(storedSlug);
+      }
+    }
+  }, [user]);
+
+  // Função para salvar o slug personalizado
+  const saveCustomLinkSlug = (slug: string) => {
+    if (!user) return false;
+
+    // Validar o slug (apenas letras, números e hífens)
+    const isValid = /^[a-zA-Z0-9-]+$/.test(slug) && slug.length >= 3;
+
+    if (isValid) {
+      setCustomLinkSlug(slug);
+      localStorage.setItem(`customLinkSlug_${user.id}`, slug);
+      return true;
+    }
+
+    return false;
+  };
+
   // Função para gerar link de indicação do usuário
   const getReferralLink = () => {
     if (!user) return "";
 
-    // Gera um link de indicação baseado no ID do usuário
+    // Usa o slug personalizado se existir, caso contrário usa o ID do usuário
+    const refParam = customLinkSlug || user.id;
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    return `${baseUrl}/cadastro/1?ref=${user.id}`;
+    return `${baseUrl}/cadastro/1?ref=${refParam}`;
   };
 
   return (
@@ -127,6 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         getReferralLink,
+        saveCustomLinkSlug,
+        customLinkSlug,
       }}
     >
       {children}
