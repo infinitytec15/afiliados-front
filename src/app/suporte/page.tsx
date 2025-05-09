@@ -213,9 +213,11 @@ export default function SuportePage() {
               </div>
 
               <div className="mt-6">
-                <Button>
-                  <MessageSquareIcon className="mr-2 h-4 w-4" />
-                  Novo Ticket
+                <Button asChild>
+                  <a href="/suporte/tickets">
+                    <MessageSquareIcon className="mr-2 h-4 w-4" />
+                    Novo Ticket
+                  </a>
                 </Button>
               </div>
             </CardContent>

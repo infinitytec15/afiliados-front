@@ -8,9 +8,7 @@ const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = ({
-  ...props
-}: DialogPrimitive.DialogPortalProps) => (
+const DialogPortal = ({ ...props }: DialogPrimitive.DialogPortalProps) => (
   <DialogPrimitive.Portal {...props} />
 );
 DialogPortal.displayName = DialogPrimitive.Portal.displayName;
@@ -64,7 +62,7 @@ const DialogHeader = ({
       className,
     )}
     {...props}
-  />
+  ></div>
 );
 DialogHeader.displayName = "DialogHeader";
 
@@ -78,7 +76,7 @@ const DialogFooter = ({
       className,
     )}
     {...props}
-  />
+  ></div>
 );
 DialogFooter.displayName = "DialogFooter";
 
