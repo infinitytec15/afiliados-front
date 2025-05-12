@@ -4,6 +4,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ExpandableReferralTree from "@/components/clientes/ExpandableReferralTree";
 import ClientesTable from "@/components/clientes/ClientesTable";
+import UserPanelHeader from "@/components/UserPanelHeader";
 
 // Componentes simplificados para evitar erros
 const SimpleClientesTable = () => (
@@ -133,61 +134,64 @@ const SimpleAffiliatesApproval = () => (
 
 export default function IndicadosPage() {
   return (
-    <div className="bg-background min-h-screen p-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Meus Indicados</h1>
-        <p className="text-muted-foreground">
-          Gerencie seus indicados diretos e indiretos.
-        </p>
-      </header>
+    <>
+      <UserPanelHeader />
+      <div className="bg-background min-h-screen p-6">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">Meus Indicados</h1>
+          <p className="text-muted-foreground">
+            Gerencie seus indicados diretos e indiretos.
+          </p>
+        </header>
 
-      {/* Cards de estatísticas com design simplificado */}
-      <div className="mb-8">
-        <Card className="bg-blue-600 rounded-xl overflow-hidden shadow-lg border-0">
-          <CardHeader className="bg-blue-700 py-3 px-6">
-            <CardTitle className="text-white text-lg font-medium">
-              Estatísticas de Indicados
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-blue-500/30">
-              <div className="bg-blue-600 p-6 text-white flex flex-col items-center justify-center">
-                <p className="text-sm font-medium text-blue-100 mb-1">
-                  Total de Indicados Diretos
-                </p>
-                <p className="text-4xl font-bold">18</p>
+        {/* Cards de estatísticas com design simplificado */}
+        <div className="mb-8">
+          <Card className="bg-blue-600 rounded-xl overflow-hidden shadow-lg border-0">
+            <CardHeader className="bg-blue-700 py-3 px-6">
+              <CardTitle className="text-white text-lg font-medium">
+                Estatísticas de Indicados
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-blue-500/30">
+                <div className="bg-blue-600 p-6 text-white flex flex-col items-center justify-center">
+                  <p className="text-sm font-medium text-blue-100 mb-1">
+                    Total de Indicados Diretos
+                  </p>
+                  <p className="text-4xl font-bold">18</p>
+                </div>
+                <div className="bg-blue-600 p-6 text-white flex flex-col items-center justify-center">
+                  <p className="text-sm font-medium text-blue-100 mb-1">
+                    Total de Indicados Indiretos
+                  </p>
+                  <p className="text-4xl font-bold">7</p>
+                </div>
+                <div className="bg-blue-600 p-6 text-white flex flex-col items-center justify-center">
+                  <p className="text-sm font-medium text-blue-100 mb-1">
+                    Conversão para Compras
+                  </p>
+                  <p className="text-4xl font-bold">68%</p>
+                </div>
               </div>
-              <div className="bg-blue-600 p-6 text-white flex flex-col items-center justify-center">
-                <p className="text-sm font-medium text-blue-100 mb-1">
-                  Total de Indicados Indiretos
-                </p>
-                <p className="text-4xl font-bold">7</p>
-              </div>
-              <div className="bg-blue-600 p-6 text-white flex flex-col items-center justify-center">
-                <p className="text-sm font-medium text-blue-100 mb-1">
-                  Conversão para Compras
-                </p>
-                <p className="text-4xl font-bold">68%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Lista de Indicados */}
-      <div className="mb-8">
-        <ClientesTable />
-      </div>
+        {/* Lista de Indicados */}
+        <div className="mb-8">
+          <ClientesTable />
+        </div>
 
-      {/* Área de aprovação de afiliados */}
-      <div className="mb-8">
-        <SimpleAffiliatesApproval />
-      </div>
+        {/* Área de aprovação de afiliados */}
+        <div className="mb-8">
+          <SimpleAffiliatesApproval />
+        </div>
 
-      {/* Árvore de Indicados */}
-      <div className="mb-8">
-        <ExpandableReferralTree />
+        {/* Árvore de Indicados */}
+        <div className="mb-8">
+          <ExpandableReferralTree />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

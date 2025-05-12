@@ -1,14 +1,8 @@
 "use client";
 
-import { Metadata } from "next";
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { redirect } from "next/navigation";
-
-export const metadata: Metadata = {
-  title: "Suporte - Sistema de Afiliados",
-  description: "Central de suporte para afiliados",
-};
 
 export default function SuporteLayout({
   children,
