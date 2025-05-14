@@ -9,22 +9,16 @@ export default function SuporteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  // Redirecionar para login se não estiver autenticado
-  if (!isAuthenticated) {
+  if (!isLoading && !user) {
     redirect("/login");
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar para telas maiores */}
-      <div className="hidden md:block w-64 h-full">
-        <DashboardSidebar />
-      </div>
-
-      {/* Conteúdo principal */}
-      <div className="flex-1 overflow-auto">{children}</div>
+    <div className="flex min-h-screen bg-background">
+      <DashboardSidebar />
+      <div className="flex-1">{children}</div>
     </div>
   );
 }

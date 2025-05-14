@@ -19,32 +19,31 @@ import {
   User,
   Mail,
   Lock,
-  CreditCard,
   Phone,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  formatDocument,
-  isValidCPF,
-  isValidCNPJ,
-} from "@/lib/validate-document";
+import DocumentValidator from "./DocumentValidator";
+import { isValidCPF, isValidCNPJ } from "@/utils/document-validator";
 
-interface CadastroWizardProps {
-  initialStep?: number;
-  referralCode?: string;
-  referrerName?: string;
+interface FormData {
+  nome: string;
+  email: string;
+  cpfCnpj: string;
+  telefone: string;
+  senha: string;
+  codigoIndicacao?: string;
+  documentoIdentidade?: File | null;
+  comprovanteBancario?: File | null;
 }
 
-export default function CadastroWizard({
-  initialStep = 1,
-  referralCode = "",
-  referrerName = "João Silva",
-}: CadastroWizardProps) {
+export default function CadastroWizard() {
   const router = useRouter();
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(initialStep);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [currentStep, setCurrentStep] = useState(0);
+  const [referralCode, setReferralCode] = useState("");
+
+  const [formData, setFormData] = useState<FormData>({
     nome: "",
     email: "",
     cpfCnpj: "",
@@ -60,11 +59,43 @@ export default function CadastroWizard({
     senha: "",
   });
 
+  // Função para formatar telefone
+  const formatPhone = (value: string): string => {
+    const cleanValue = value.replace(/\D/g, "");
+    if (cleanValue.length <= 10) {
+      return cleanValue
+        .replace(/^(\d{2})(\d)/, "($1) $2")
+        .replace(/^(\d{2})\)\s(\d{4})(\d)/, "($1) $2-$3")
+        .substring(0, 14);
+    } else {
+      return cleanValue
+        .replace(/^(\d{2})(\d)/, "($1) $2")
+        .replace(/^(\d{2})\)\s(\d{5})(\d)/, "($1) $2-$3")
+        .substring(0, 15);
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedPhone = formatPhone(e.target.value);
+    setFormData((prev) => ({ ...prev, telefone: formattedPhone }));
+
+    if (errors.telefone) {
+      setErrors((prev) => ({ ...prev, telefone: "" }));
+    }
+  };
+
+  const handleDocumentChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, cpfCnpj: value }));
+
+    if (errors.cpfCnpj) {
+      setErrors((prev) => ({ ...prev, cpfCnpj: "" }));
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error when typing
     if (errors[name as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -103,36 +134,115 @@ export default function CadastroWizard({
     return !Object.values(newErrors).some((error) => error);
   };
 
+  const validateStep = (step: number) => {
+    switch (step) {
+      case 0: // Dados Pessoais
+        if (!formData.nome) {
+          toast({
+            title: "Campo obrigatório",
+            description: "Por favor, preencha seu nome completo.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        if (!formData.email) {
+          toast({
+            title: "Campo obrigatório",
+            description: "Por favor, informe seu email.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        if (!formData.telefone) {
+          toast({
+            title: "Campo obrigatório",
+            description: "Por favor, informe seu telefone.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        if (!formData.cpfCnpj) {
+          toast({
+            title: "Campo obrigatório",
+            description: "Por favor, informe seu CPF ou CNPJ.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        const cleanDoc = formData.cpfCnpj.replace(/\D/g, "");
+        if (cleanDoc.length === 11 && !isValidCPF(cleanDoc)) {
+          toast({
+            title: "CPF inválido",
+            description:
+              "O CPF informado não é válido. Por favor, verifique e tente novamente.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        if (cleanDoc.length === 14 && !isValidCNPJ(cleanDoc)) {
+          toast({
+            title: "CNPJ inválido",
+            description:
+              "O CNPJ informado não é válido. Por favor, verifique e tente novamente.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+      case 1: // Confirmação de Indicação
+        return true; // Não há validação obrigatória neste passo
+      case 2: // Upload de Documentos
+        if (!formData.documentoIdentidade) {
+          toast({
+            title: "Documento obrigatório",
+            description:
+              "Por favor, faça o upload do seu documento de identidade.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        if (!formData.comprovanteBancario) {
+          toast({
+            title: "Documento obrigatório",
+            description:
+              "Por favor, faça o upload do seu comprovante bancário.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+      default:
+        return false;
+    }
+  };
+
   const handleNext = () => {
-    if (currentStep === 1) {
-      if (validateStep1()) {
-        setCurrentStep((prev) => prev + 1);
-        toast({
-          title: "Etapa concluída",
-          description: "Dados pessoais salvos com sucesso!",
-          variant: "default",
-        });
-      }
-    } else {
+    if (validateStep(currentStep)) {
       setCurrentStep((prev) => prev + 1);
       toast({
         title: "Etapa concluída",
-        description: "Informações confirmadas com sucesso!",
+        description: "Informações salvas com sucesso!",
         variant: "default",
       });
     }
   };
 
-  const handleBack = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  const handlePrevious = () => {
+    setCurrentStep((prev) => Math.max(0, prev - 1));
   };
 
-  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedDocument = formatDocument(e.target.value);
-    setFormData((prev) => ({ ...prev, cpfCnpj: formattedDocument }));
+  const handleFileUpload = (field: keyof FormData, file: File | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: file,
+    }));
 
-    if (errors.cpfCnpj) {
-      setErrors((prev) => ({ ...prev, cpfCnpj: "" }));
+    if (file) {
+      toast({
+        title: "Arquivo enviado",
+        description: `${file.name} foi carregado com sucesso.`,
+        variant: "default",
+      });
     }
   };
 
@@ -191,238 +301,273 @@ export default function CadastroWizard({
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-background">
-      {/* Progress Indicator */}
-      <div className="mb-8">
-        <div className="flex justify-between">
-          <div className="flex flex-col items-center">
+    <Card className="w-full max-w-md mx-auto shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <CardTitle className="text-xl font-bold text-center">
+          Cadastro de Afiliado
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="pt-6">
+        <div className="flex justify-between mb-6">
+          {[0, 1, 2].map((step) => (
             <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 1 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+              key={step}
+              className={`flex flex-col items-center ${step < currentStep ? "text-primary" : step === currentStep ? "text-primary" : "text-muted-foreground"}`}
             >
-              1
-            </div>
-            <span className="text-sm mt-2">Dados Básicos</span>
-          </div>
-          <div className="flex-1 flex items-center">
-            <div
-              className={`h-1 w-full ${currentStep >= 2 ? "bg-primary" : "bg-muted"}`}
-            ></div>
-          </div>
-          <div className="flex flex-col items-center">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-            >
-              2
-            </div>
-            <span className="text-sm mt-2">Confirmação</span>
-          </div>
-          <div className="flex-1 flex items-center">
-            <div
-              className={`h-1 w-full ${currentStep >= 3 ? "bg-primary" : "bg-muted"}`}
-            ></div>
-          </div>
-          <div className="flex flex-col items-center">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 3 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-            >
-              3
-            </div>
-            <span className="text-sm mt-2">Conclusão</span>
-          </div>
-        </div>
-      </div>
-
-      <Card className="w-full">
-        {currentStep === 1 && (
-          <>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center">
-                Crie sua conta
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome completo</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="nome"
-                    name="nome"
-                    placeholder="Seu nome completo"
-                    className="pl-10"
-                    value={formData.nome}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                {errors.nome && (
-                  <p className="text-sm text-destructive">{errors.nome}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    className="pl-10"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="telefone">Telefone</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="telefone"
-                    name="telefone"
-                    placeholder="(00) 00000-0000"
-                    className="pl-10"
-                    value={formData.telefone}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "");
-                      const formattedValue = value
-                        .replace(/^(\d{2})(\d)/g, "($1) $2")
-                        .replace(
-                          value.length > 10 ? /(\d{5})(\d)/ : /(\d{4})(\d)/,
-                          "$1-$2",
-                        )
-                        .substring(0, 15);
-                      setFormData((prev) => ({
-                        ...prev,
-                        telefone: formattedValue,
-                      }));
-                    }}
-                    maxLength={15}
-                  />
-                </div>
-                {errors.telefone && (
-                  <p className="text-sm text-destructive">{errors.telefone}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="cpfCnpj">CPF/CNPJ</Label>
-                <div className="relative">
-                  <CreditCard className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="cpfCnpj"
-                    name="cpfCnpj"
-                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                    className="pl-10"
-                    value={formData.cpfCnpj}
-                    onChange={handleDocumentChange}
-                    maxLength={18}
-                  />
-                </div>
-                {errors.cpfCnpj && (
-                  <p className="text-sm text-destructive">{errors.cpfCnpj}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="senha">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="senha"
-                    name="senha"
-                    type="password"
-                    placeholder="Mínimo 8 caracteres"
-                    className="pl-10"
-                    value={formData.senha}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                {errors.senha && (
-                  <p className="text-sm text-destructive">{errors.senha}</p>
-                )}
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button
-                onClick={handleNext}
-                className="w-full sm:w-auto"
-                disabled={
-                  !formData.nome ||
-                  !formData.email ||
-                  !formData.cpfCnpj ||
-                  !formData.senha
-                }
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step < currentStep ? "bg-primary text-white" : step === currentStep ? "border-2 border-primary" : "border-2 border-muted"}`}
               >
-                Próximo <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </>
+                {step < currentStep ? (
+                  <CheckCircle className="h-5 w-5" />
+                ) : (
+                  <span>{step + 1}</span>
+                )}
+              </div>
+              <span className="text-xs mt-1">
+                {step === 0
+                  ? "Dados Pessoais"
+                  : step === 1
+                    ? "Indicação"
+                    : "Documentos"}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {currentStep === 0 && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome Completo</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="nome"
+                  name="nome"
+                  placeholder="Seu nome completo"
+                  className="pl-10"
+                  value={formData.nome}
+                  onChange={handleInputChange}
+                />
+              </div>
+              {errors.nome && (
+                <p className="text-sm text-destructive">{errors.nome}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="seu.email@exemplo.com"
+                  className="pl-10"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="telefone">Telefone</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="telefone"
+                  name="telefone"
+                  placeholder="(00) 00000-0000"
+                  className="pl-10"
+                  value={formData.telefone}
+                  onChange={handlePhoneChange}
+                  maxLength={15}
+                />
+              </div>
+              {errors.telefone && (
+                <p className="text-sm text-destructive">{errors.telefone}</p>
+              )}
+            </div>
+
+            <DocumentValidator
+              value={formData.cpfCnpj}
+              onChange={handleDocumentChange}
+              error={errors.cpfCnpj}
+            />
+
+            <div className="space-y-2">
+              <Label htmlFor="senha">Senha</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="senha"
+                  name="senha"
+                  type="password"
+                  placeholder="Sua senha (mínimo 8 caracteres)"
+                  className="pl-10"
+                  value={formData.senha}
+                  onChange={handleInputChange}
+                />
+              </div>
+              {errors.senha && (
+                <p className="text-sm text-destructive">{errors.senha}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {currentStep === 1 && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">
+                Você foi indicado por alguém?
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Se você foi indicado por um afiliado, insira o código de
+                indicação abaixo.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="codigoIndicacao">
+                Código de Indicação (opcional)
+              </Label>
+              <Input
+                id="codigoIndicacao"
+                placeholder="Código de indicação"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
+              />
+            </div>
+
+            <div className="bg-muted p-4 rounded-md">
+              <p className="text-sm">
+                Não tem um código de indicação? Sem problemas! Você pode
+                continuar seu cadastro normalmente.
+              </p>
+            </div>
+          </div>
         )}
 
         {currentStep === 2 && (
-          <>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center">
-                Confirme quem indicou você
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label>Indicado por</Label>
-                <div className="p-3 bg-muted rounded-md flex items-center">
-                  <User className="h-5 w-5 mr-2 text-muted-foreground" />
-                  <span>{referrerName}</span>
-                </div>
-              </div>
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">
+                Upload de Documentos
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Para finalizar seu cadastro, precisamos de alguns documentos.
+              </p>
+            </div>
 
-              <div className="p-4 bg-primary/10 rounded-md">
-                <p className="text-sm">
-                  Ao prosseguir, você confirma que foi indicado por{" "}
-                  {referrerName}.
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="documentoIdentidade">
+                  Documento de Identidade (RG ou CNH)
+                </Label>
+                <Input
+                  id="documentoIdentidade"
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    handleFileUpload(
+                      "documentoIdentidade",
+                      e.target.files ? e.target.files[0] : null,
+                    )
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Formatos aceitos: JPG, PNG ou PDF (máx. 5MB)
                 </p>
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={handleBack}>
-                <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
-              </Button>
-              <Button onClick={handleNext}>
-                Próximo <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </>
+
+              <div className="space-y-2">
+                <Label htmlFor="comprovanteBancario">
+                  Comprovante Bancário
+                </Label>
+                <Input
+                  id="comprovanteBancario"
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    handleFileUpload(
+                      "comprovanteBancario",
+                      e.target.files ? e.target.files[0] : null,
+                    )
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Formatos aceitos: JPG, PNG ou PDF (máx. 5MB)
+                </p>
+              </div>
+            </div>
+          </div>
         )}
 
         {currentStep === 3 && (
-          <>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center">
-                Registro em análise
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center py-10 space-y-6">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <CheckCircle className="h-10 w-10 text-primary" />
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
-              <div className="text-center space-y-2">
-                <h3 className="text-xl font-medium">
-                  Seu cadastro foi enviado!
-                </h3>
-                <p className="text-muted-foreground">
-                  Verifique seu e-mail para ativar a conta.
+              <h3 className="text-lg font-semibold mb-2">
+                Revisão de Cadastro
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Verifique se todas as informações estão corretas antes de
+                finalizar.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="font-medium">Nome:</div>
+                <div>{formData.nome}</div>
+
+                <div className="font-medium">Email:</div>
+                <div>{formData.email}</div>
+
+                <div className="font-medium">CPF/CNPJ:</div>
+                <div>{formData.cpfCnpj}</div>
+
+                <div className="font-medium">Telefone:</div>
+                <div>{formData.telefone}</div>
+
+                {referralCode && (
+                  <>
+                    <div className="font-medium">Código de Indicação:</div>
+                    <div>{referralCode}</div>
+                  </>
+                )}
+
+                <div className="font-medium">Documento de Identidade:</div>
+                <div>{formData.documentoIdentidade?.name || "Não enviado"}</div>
+
+                <div className="font-medium">Comprovante Bancário:</div>
+                <div>{formData.comprovanteBancario?.name || "Não enviado"}</div>
+              </div>
+
+              <div className="bg-muted p-4 rounded-md text-sm">
+                <p>
+                  Ao finalizar seu cadastro, você concorda com nossos{" "}
+                  <a href="#" className="text-primary hover:underline">
+                    Termos de Serviço
+                  </a>{" "}
+                  e{" "}
+                  <a href="#" className="text-primary hover:underline">
+                    Política de Privacidade
+                  </a>
+                  .
                 </p>
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-center">
+
               <Button
                 onClick={handleFinalizarCadastro}
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -453,10 +598,66 @@ export default function CadastroWizard({
                   "Finalizar Cadastro"
                 )}
               </Button>
-            </CardFooter>
-          </>
+            </div>
+          </div>
         )}
-      </Card>
-    </div>
+      </CardContent>
+
+      <CardFooter className="flex justify-between">
+        {currentStep > 0 && currentStep < 3 && (
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            className="flex items-center gap-1"
+          >
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </Button>
+        )}
+
+        {currentStep === 0 && (
+          <div className="ml-auto">
+            <Button
+              onClick={handleNext}
+              className="flex items-center gap-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              disabled={
+                !formData.nome ||
+                !formData.email ||
+                !formData.cpfCnpj ||
+                !formData.senha
+              }
+            >
+              Próximo <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {currentStep === 1 && (
+          <div className="ml-auto">
+            <Button
+              onClick={handleNext}
+              className="flex items-center gap-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              Próximo <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {currentStep === 2 && (
+          <div className="ml-auto">
+            <Button
+              onClick={handleNext}
+              className="flex items-center gap-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              disabled={
+                !formData.documentoIdentidade || !formData.comprovanteBancario
+              }
+            >
+              Revisar <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {currentStep === 0 && <div></div>}
+      </CardFooter>
+    </Card>
   );
 }
