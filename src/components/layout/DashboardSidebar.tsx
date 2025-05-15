@@ -14,6 +14,7 @@ import {
   HelpCircleIcon,
   LogOutIcon,
 } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarItemProps {
@@ -73,6 +74,11 @@ const DashboardSidebar = ({ className }: DashboardSidebarProps) => {
       href: "/materiais",
       icon: <FileTextIcon className="h-5 w-5" />,
       label: "Materiais",
+    },
+    {
+      href: "/gamificacao",
+      icon: <LineChartIcon className="h-5 w-5" />,
+      label: "Benefícios",
     },
     {
       href: "/configuracoes",

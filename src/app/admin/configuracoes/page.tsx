@@ -860,6 +860,654 @@ export default function ConfiguracoesPage() {
           </Card>
         </TabsContent>
 
+        {/* Configurações de Gamificação */}
+        <TabsContent value="gamificacao" className="space-y-4 mt-4">
+          <Card className="bg-white border-0 shadow-md overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50 border-b">
+              <CardTitle className="flex items-center text-orange-800">
+                <Trophy className="h-5 w-5 mr-2 text-orange-600" />
+                Configurações de Gamificação
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 p-6">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 bg-yellow-50 p-4 rounded-lg">
+                  <Switch
+                    id="ativar-gamificacao"
+                    defaultChecked
+                    className="data-[state=checked]:bg-orange-600"
+                  />
+                  <Label
+                    htmlFor="ativar-gamificacao"
+                    className="text-orange-800"
+                  >
+                    Ativar sistema de gamificação
+                  </Label>
+                </div>
+
+                <Separator className="bg-gradient-to-r from-yellow-200 to-orange-200" />
+
+                {/* Níveis de Gamificação */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-orange-800 flex items-center">
+                    <Crown className="h-5 w-5 mr-2 text-orange-600" />
+                    Níveis de Gamificação
+                  </h3>
+
+                  <div className="space-y-4">
+                    {niveisGamificacao.map((nivel, index) => (
+                      <div
+                        key={nivel.id}
+                        className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 relative"
+                      >
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`nivel-nome-${index}`}
+                            className="text-orange-800"
+                          >
+                            Nome do Nível
+                          </Label>
+                          <Input
+                            id={`nivel-nome-${index}`}
+                            value={nivel.nome}
+                            onChange={(e) => {
+                              const novosNiveis = [...niveisGamificacao];
+                              novosNiveis[index].nome = e.target.value;
+                              setNiveisGamificacao(novosNiveis);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`nivel-pontos-${index}`}
+                            className="text-orange-800"
+                          >
+                            Pontos Necessários
+                          </Label>
+                          <Input
+                            id={`nivel-pontos-${index}`}
+                            type="number"
+                            value={nivel.pontosNecessarios}
+                            onChange={(e) => {
+                              const novosNiveis = [...niveisGamificacao];
+                              novosNiveis[index].pontosNecessarios = parseInt(
+                                e.target.value,
+                              );
+                              setNiveisGamificacao(novosNiveis);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`nivel-icone-${index}`}
+                            className="text-orange-800"
+                          >
+                            Ícone
+                          </Label>
+                          <Select
+                            value={nivel.icone}
+                            onValueChange={(value) => {
+                              const novosNiveis = [...niveisGamificacao];
+                              novosNiveis[index].icone = value;
+                              setNiveisGamificacao(novosNiveis);
+                            }}
+                          >
+                            <SelectTrigger className="border-yellow-200 bg-white">
+                              <SelectValue placeholder="Selecione um ícone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Star">Estrela</SelectItem>
+                              <SelectItem value="Medal">Medalha</SelectItem>
+                              <SelectItem value="Trophy">Troféu</SelectItem>
+                              <SelectItem value="Crown">Coroa</SelectItem>
+                              <SelectItem value="Award">Prêmio</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex items-end">
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => {
+                              setNiveisGamificacao(
+                                niveisGamificacao.filter((_, i) => i !== index),
+                              );
+                            }}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      onClick={() => {
+                        setNiveisGamificacao([
+                          ...niveisGamificacao,
+                          {
+                            id: niveisGamificacao.length + 1,
+                            nome: "Novo Nível",
+                            pontosNecessarios: 0,
+                            icone: "Star",
+                          },
+                        ]);
+                      }}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" /> Adicionar Nível
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator className="bg-gradient-to-r from-yellow-200 to-orange-200" />
+
+                {/* Conquistas */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-orange-800 flex items-center">
+                    <Medal className="h-5 w-5 mr-2 text-orange-600" />
+                    Conquistas e Badges
+                  </h3>
+
+                  <div className="space-y-4">
+                    {conquistas.map((conquista, index) => (
+                      <div
+                        key={conquista.id}
+                        className="grid grid-cols-1 md:grid-cols-5 gap-4 bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 relative"
+                      >
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`conquista-nome-${index}`}
+                            className="text-orange-800"
+                          >
+                            Nome
+                          </Label>
+                          <Input
+                            id={`conquista-nome-${index}`}
+                            value={conquista.nome}
+                            onChange={(e) => {
+                              const novasConquistas = [...conquistas];
+                              novasConquistas[index].nome = e.target.value;
+                              setConquistas(novasConquistas);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                          <Label
+                            htmlFor={`conquista-descricao-${index}`}
+                            className="text-orange-800"
+                          >
+                            Descrição
+                          </Label>
+                          <Input
+                            id={`conquista-descricao-${index}`}
+                            value={conquista.descricao}
+                            onChange={(e) => {
+                              const novasConquistas = [...conquistas];
+                              novasConquistas[index].descricao = e.target.value;
+                              setConquistas(novasConquistas);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`conquista-pontos-${index}`}
+                            className="text-orange-800"
+                          >
+                            Pontos
+                          </Label>
+                          <Input
+                            id={`conquista-pontos-${index}`}
+                            type="number"
+                            value={conquista.pontos}
+                            onChange={(e) => {
+                              const novasConquistas = [...conquistas];
+                              novasConquistas[index].pontos = parseInt(
+                                e.target.value,
+                              );
+                              setConquistas(novasConquistas);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="flex items-end">
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => {
+                              setConquistas(
+                                conquistas.filter((_, i) => i !== index),
+                              );
+                            }}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      onClick={() => {
+                        setConquistas([
+                          ...conquistas,
+                          {
+                            id: conquistas.length + 1,
+                            nome: "Nova Conquista",
+                            descricao: "Descrição da conquista",
+                            pontos: 50,
+                            icone: "Star",
+                          },
+                        ]);
+                      }}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" /> Adicionar Conquista
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator className="bg-gradient-to-r from-yellow-200 to-orange-200" />
+
+                {/* Desafios */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-orange-800 flex items-center">
+                    <Target className="h-5 w-5 mr-2 text-orange-600" />
+                    Desafios
+                  </h3>
+
+                  <div className="space-y-4">
+                    {desafios.map((desafio, index) => (
+                      <div
+                        key={desafio.id}
+                        className="grid grid-cols-1 md:grid-cols-6 gap-4 bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 relative"
+                      >
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`desafio-nome-${index}`}
+                            className="text-orange-800"
+                          >
+                            Nome
+                          </Label>
+                          <Input
+                            id={`desafio-nome-${index}`}
+                            value={desafio.nome}
+                            onChange={(e) => {
+                              const novosDesafios = [...desafios];
+                              novosDesafios[index].nome = e.target.value;
+                              setDesafios(novosDesafios);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                          <Label
+                            htmlFor={`desafio-descricao-${index}`}
+                            className="text-orange-800"
+                          >
+                            Descrição
+                          </Label>
+                          <Input
+                            id={`desafio-descricao-${index}`}
+                            value={desafio.descricao}
+                            onChange={(e) => {
+                              const novosDesafios = [...desafios];
+                              novosDesafios[index].descricao = e.target.value;
+                              setDesafios(novosDesafios);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`desafio-pontos-${index}`}
+                            className="text-orange-800"
+                          >
+                            Pontos
+                          </Label>
+                          <Input
+                            id={`desafio-pontos-${index}`}
+                            type="number"
+                            value={desafio.pontos}
+                            onChange={(e) => {
+                              const novosDesafios = [...desafios];
+                              novosDesafios[index].pontos = parseInt(
+                                e.target.value,
+                              );
+                              setDesafios(novosDesafios);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`desafio-duracao-${index}`}
+                            className="text-orange-800"
+                          >
+                            Duração (dias)
+                          </Label>
+                          <Input
+                            id={`desafio-duracao-${index}`}
+                            type="number"
+                            value={desafio.duracao}
+                            onChange={(e) => {
+                              const novosDesafios = [...desafios];
+                              novosDesafios[index].duracao = parseInt(
+                                e.target.value,
+                              );
+                              setDesafios(novosDesafios);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 mt-6">
+                            <Switch
+                              id={`desafio-ativo-${index}`}
+                              checked={desafio.ativo}
+                              onCheckedChange={(checked) => {
+                                const novosDesafios = [...desafios];
+                                novosDesafios[index].ativo = checked;
+                                setDesafios(novosDesafios);
+                              }}
+                              className="data-[state=checked]:bg-orange-600"
+                            />
+                            <Label
+                              htmlFor={`desafio-ativo-${index}`}
+                              className="text-orange-800"
+                            >
+                              Ativo
+                            </Label>
+                          </div>
+                        </div>
+
+                        <div className="flex items-end">
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => {
+                              setDesafios(
+                                desafios.filter((_, i) => i !== index),
+                              );
+                            }}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      onClick={() => {
+                        setDesafios([
+                          ...desafios,
+                          {
+                            id: desafios.length + 1,
+                            nome: "Novo Desafio",
+                            descricao: "Descrição do desafio",
+                            pontos: 100,
+                            duracao: 7,
+                            ativo: true,
+                          },
+                        ]);
+                      }}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" /> Adicionar Desafio
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator className="bg-gradient-to-r from-yellow-200 to-orange-200" />
+
+                {/* Prêmios */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-orange-800 flex items-center">
+                    <Gift className="h-5 w-5 mr-2 text-orange-600" />
+                    Prêmios
+                  </h3>
+
+                  <div className="space-y-4">
+                    {premios.map((premio, index) => (
+                      <div
+                        key={premio.id}
+                        className="grid grid-cols-1 md:grid-cols-5 gap-4 bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-100 relative"
+                      >
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`premio-nome-${index}`}
+                            className="text-orange-800"
+                          >
+                            Nome
+                          </Label>
+                          <Input
+                            id={`premio-nome-${index}`}
+                            value={premio.nome}
+                            onChange={(e) => {
+                              const novosPremios = [...premios];
+                              novosPremios[index].nome = e.target.value;
+                              setPremios(novosPremios);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`premio-pontos-${index}`}
+                            className="text-orange-800"
+                          >
+                            Pontos Necessários
+                          </Label>
+                          <Input
+                            id={`premio-pontos-${index}`}
+                            type="number"
+                            value={premio.pontosNecessarios}
+                            onChange={(e) => {
+                              const novosPremios = [...premios];
+                              novosPremios[index].pontosNecessarios = parseInt(
+                                e.target.value,
+                              );
+                              setPremios(novosPremios);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`premio-quantidade-${index}`}
+                            className="text-orange-800"
+                          >
+                            Quantidade Disponível
+                          </Label>
+                          <Input
+                            id={`premio-quantidade-${index}`}
+                            type="number"
+                            value={premio.quantidade}
+                            onChange={(e) => {
+                              const novosPremios = [...premios];
+                              novosPremios[index].quantidade = parseInt(
+                                e.target.value,
+                              );
+                              setPremios(novosPremios);
+                            }}
+                            className="border-yellow-200"
+                          />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 mt-6">
+                            <Switch
+                              id={`premio-ativo-${index}`}
+                              checked={premio.ativo}
+                              onCheckedChange={(checked) => {
+                                const novosPremios = [...premios];
+                                novosPremios[index].ativo = checked;
+                                setPremios(novosPremios);
+                              }}
+                              className="data-[state=checked]:bg-orange-600"
+                            />
+                            <Label
+                              htmlFor={`premio-ativo-${index}`}
+                              className="text-orange-800"
+                            >
+                              Ativo
+                            </Label>
+                          </div>
+                        </div>
+
+                        <div className="flex items-end">
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => {
+                              setPremios(premios.filter((_, i) => i !== index));
+                            }}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      onClick={() => {
+                        setPremios([
+                          ...premios,
+                          {
+                            id: premios.length + 1,
+                            nome: "Novo Prêmio",
+                            pontosNecessarios: 100,
+                            quantidade: 10,
+                            ativo: true,
+                          },
+                        ]);
+                      }}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" /> Adicionar Prêmio
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator className="bg-gradient-to-r from-yellow-200 to-orange-200" />
+
+                {/* Configurações Gerais de Gamificação */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-orange-800 flex items-center">
+                    <Settings className="h-5 w-5 mr-2 text-orange-600" />
+                    Configurações Gerais de Gamificação
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2 bg-yellow-50 p-4 rounded-lg">
+                      <Label
+                        htmlFor="pontos-por-venda"
+                        className="text-orange-800"
+                      >
+                        Pontos por R$ 1,00 em vendas
+                      </Label>
+                      <Input
+                        id="pontos-por-venda"
+                        type="number"
+                        defaultValue="1"
+                        className="border-yellow-200 w-24"
+                      />
+                    </div>
+
+                    <div className="space-y-2 bg-yellow-50 p-4 rounded-lg">
+                      <Label
+                        htmlFor="pontos-por-indicacao"
+                        className="text-orange-800"
+                      >
+                        Pontos por indicação convertida
+                      </Label>
+                      <Input
+                        id="pontos-por-indicacao"
+                        type="number"
+                        defaultValue="50"
+                        className="border-yellow-200 w-24"
+                      />
+                    </div>
+
+                    <div className="space-y-2 bg-yellow-50 p-4 rounded-lg">
+                      <Label
+                        htmlFor="pontos-por-login"
+                        className="text-orange-800"
+                      >
+                        Pontos por login diário
+                      </Label>
+                      <Input
+                        id="pontos-por-login"
+                        type="number"
+                        defaultValue="5"
+                        className="border-yellow-200 w-24"
+                      />
+                    </div>
+
+                    <div className="space-y-2 bg-yellow-50 p-4 rounded-lg">
+                      <Label
+                        htmlFor="pontos-por-perfil"
+                        className="text-orange-800"
+                      >
+                        Pontos por completar perfil
+                      </Label>
+                      <Input
+                        id="pontos-por-perfil"
+                        type="number"
+                        defaultValue="20"
+                        className="border-yellow-200 w-24"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 bg-yellow-50 p-4 rounded-lg">
+                    <Switch
+                      id="notificacoes-gamificacao"
+                      defaultChecked
+                      className="data-[state=checked]:bg-orange-600"
+                    />
+                    <Label
+                      htmlFor="notificacoes-gamificacao"
+                      className="text-orange-800"
+                    >
+                      Enviar notificações sobre conquistas e níveis
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2 bg-yellow-50 p-4 rounded-lg">
+                    <Switch
+                      id="exibir-ranking"
+                      defaultChecked
+                      className="data-[state=checked]:bg-orange-600"
+                    />
+                    <Label htmlFor="exibir-ranking" className="text-orange-800">
+                      Exibir ranking público de afiliados
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Configurações Gerais */}
         <TabsContent value="geral" className="space-y-4 mt-4">
           <Card className="bg-white border-0 shadow-md overflow-hidden">

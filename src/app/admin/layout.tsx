@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Layers,
   MessageSquare,
+  Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,6 +62,12 @@ export default function AdminLayout({
       href: "/admin/suporte",
       icon: <MessageSquare className="h-5 w-5" />,
       color: "from-purple-500 to-violet-500",
+    },
+    {
+      title: "Gamificação",
+      href: "/admin/configuracoes?tab=gamificacao",
+      icon: <Award className="h-5 w-5" />,
+      color: "from-yellow-500 to-orange-500",
     },
     {
       title: "Configurações",
